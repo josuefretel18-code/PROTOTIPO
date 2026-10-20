@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo - Clasificación OWASP · Kimbos Delivery</title>
+<style>
+:root{--bg:#f4f5f9;--card:#fff;--ink:#1d2433;--mut:#5b6478;--pri:#b4401a;--pri2:#fbece6;--ok:#1b7f4b;--warn:#b26a00;--bad:#b3261e;--bd:#e0d6d2}
+@media (prefers-color-scheme:dark){:root{--bg:#14120f;--card:#1f1b18;--ink:#efe9e5;--mut:#a89d96;--pri:#f08a5d;--pri2:#3a2a22;--ok:#53c58a;--warn:#e0a044;--bad:#f08a82;--bd:#3d342e}}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 system-ui,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--pri);color:#fff;padding:14px 20px}
+header h1{margin:0;font-size:19px} header p{margin:2px 0 0;font-size:13px;opacity:.9}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:16px}
+h2{margin:0 0 10px;font-size:17px;color:var(--pri)}
+h3{margin:14px 0 6px;font-size:15px}
+label{display:block;font-weight:600;font-size:13px;margin:10px 0 3px}
+input,textarea,select{width:100%;padding:8px;border:1px solid var(--bd);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:80px;resize:vertical}
+.row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+button{background:var(--pri);color:#fff;border:0;border-radius:6px;padding:8px 14px;font:inherit;cursor:pointer;margin:6px 6px 0 0}
+button.sec{background:var(--pri2);color:var(--pri);border:1px solid var(--bd)}
+button.ok{background:var(--ok)} button.bad{background:var(--bad)} button.warn{background:var(--warn)}
+.chips button{font-size:12px;padding:4px 10px}
+.alert{border-left:4px solid var(--warn);background:var(--pri2);padding:8px 12px;border-radius:4px;font-size:13px;margin:8px 0}
+.alert.red{border-color:var(--bad)} .alert.green{border-color:var(--ok)}
+.cand{border:1px solid var(--bd);border-radius:8px;padding:12px;margin:8px 0}
+.cand.top{border:2px solid var(--pri);background:var(--pri2)}
+.bar{height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:4px 0}
+.bar i{display:block;height:100%;background:var(--pri)}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;background:var(--pri2);color:var(--pri);border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--bd);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:var(--pri2)}
+.wrap{overflow-x:auto}
+.hide{display:none}
+.mut{color:var(--mut);font-size:13px}
+.tabs button{background:var(--pri2);color:var(--pri);border:1px solid var(--bd)}
+.tabs button.act{background:var(--pri);color:#fff}
+ul,ol{margin:4px 0 4px 18px;padding:0}
+@media print{.tabs,button,#p0,#p1,#p3,#p4{display:none!important}#p2{display:block!important}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Asistente de clasificación inicial de evidencias — OWASP Top 10:2025</h1>
+  <p>Caso: Kimbos Delivery · Auditoría de TI · UNDAC · El prototipo apoya la decisión; no reemplaza el juicio del auditor.</p>
+</header>
+<main>
+<div class="tabs card">
+  <button id="t0" class="act" onclick="tab(0)">0. Caso</button>
+  <button id="t1" onclick="tab(1)">1. Registrar y analizar</button>
+  <button id="t2" onclick="tab(2)">2. Matriz de clasificación</button>
+  <button id="t3" onclick="tab(3)">3. Revisión del auditor/docente</button>
+  <button id="t4" class="sec" onclick="tab(4)">Ayuda / límites</button>
+</div>
+
+<!-- PANEL 0: CASO -->
+<section id="p0">
+  <div class="card">
+    <h2>«El pedido que nadie debía ver»: auditoría de una plataforma de delivery antes de su lanzamiento</h2>
+    <div class="alert red"><b>Caso académico.</b> Las evidencias son <b>simuladas</b> para el ejercicio y no describen hallazgos reales de <i>kimbos-delivery.onrender.com</i>. No realice pruebas sobre el sistema en producción sin autorización escrita del propietario.</div>
+    <h3>Planteamiento</h3>
+    <p><b>Kimbos</b> es un negocio de comida rápida de Cerro de Pasco que vende en línea con delivery. La plataforma web permite al cliente crear una cuenta, armar su carrito, fijar la dirección de entrega con geolocalización, calcular el costo del envío (S/ 3.00 + S/ 1.20 por km), pagar en efectivo, Yape o Plin (registrando el número de operación) y seguir el estado en «Mis pedidos». El personal de la tienda entra por <code>/acceso</code> para gestionar pedidos y confirmar pagos.</p>
+    <p>La aplicación tiene tres perfiles: <b>cliente</b>, <b>personal de tienda</b> (caja/cocina/despacho) y <b>administrador</b>. Antes de la campaña de lanzamiento, el dueño solicita al auditor una revisión previa. El equipo de desarrollo entrega un resumen de pruebas con diez evidencias:</p>
+    <div class="wrap"><table id="tablaCaso"></table></div>
+    <p>Los activos críticos son los <b>datos personales de los clientes</b> (nombre, teléfono, correo, dirección y ubicación GPS), los <b>pedidos y montos</b>, la <b>confirmación de pagos Yape/Plin</b> y el <b>panel del personal</b>.</p>
+    <p>El desarrollador afirma que <i>«Render nos da HTTPS y el escáner automático no encontró nada crítico, así que estamos listos»</i>. El auditor debe demostrar por qué esa afirmación no es suficiente.</p>
+    <h3>Desarrollo (por cada evidencia)</h3>
+    <ol>
+      <li>Delimitar el activo, usuario, función y evidencia.</li>
+      <li>Identificar el comportamiento inseguro sin nombrar todavía OWASP.</li>
+      <li>Proponer una categoría candidata.</li>
+      <li>Comparar con una categoría próxima y justificar la diferencia.</li>
+      <li>Registrar clasificación, evidencia, impacto preliminar y dato faltante.</li>
+      <li>Sustentar dos clasificaciones ante el «Abogado del Diablo».</li>
+    </ol>
+    <h3>Preguntas críticas</h3>
+    <ul>
+      <li>¿Qué evidencia te permitiría distinguir A01 de A07 cuando un cliente termina viendo pedidos ajenos después de iniciar sesión?</li>
+      <li>¿Por qué aceptar un número de operación Yape sin conciliarlo puede ser A06 y no A08? ¿Qué cambiaría tu clasificación?</li>
+      <li>Si el escáner reporta «0 vulnerabilidades críticas», ¿qué riesgos del Top 10 seguirías auditando manualmente en Kimbos?</li>
+    </ul>
+    <button onclick="tab(1)">Empezar a clasificar →</button>
+  </div>
+</section>
+
+<!-- PANEL 1 -->
+<section id="p1" class="hide">
+  <div class="card">
+    <h2>RF01 · Registrar evidencia textual</h2>
+    <div class="alert red">Aviso de privacidad: no ingrese datos reales de clientes (nombres, teléfonos, direcciones, correos), contraseñas, tokens ni números de operación. El prototipo enmascara automáticamente correos, teléfonos/DNI, IP y tokens antes de analizar, pero la responsabilidad es del usuario.</div>
+    <div class="chips mut">Cargar evidencia del caso: <span id="chips"></span></div>
+    <div class="row">
+      <div><label>ID de evidencia</label><input id="eid" placeholder="E1"></div>
+      <div><label>Activo</label><input id="activo" placeholder="p. ej. API de pedidos"></div>
+      <div><label>Usuario / perfil</label><input id="usuario" placeholder="cliente, personal, administrador"></div>
+      <div><label>Función</label><input id="funcion" placeholder="p. ej. consultar «Mis pedidos»"></div>
+    </div>
+    <label>Descripción de la evidencia (comportamiento observado)</label>
+    <textarea id="evid" placeholder="Describa qué se observó, sin nombrar todavía una categoría OWASP…"></textarea>
+    <label>Paso 2 · Comportamiento inseguro identificado (con sus palabras, sin nombrar OWASP)</label>
+    <textarea id="comp" style="min-height:60px" placeholder="p. ej. El servidor entrega el pedido sin comprobar que pertenece al cliente que lo pide."></textarea>
+    <button onclick="analizar()">Analizar evidencia</button>
+    <button class="sec" onclick="limpiar()">Limpiar</button>
+  </div>
+
+  <div id="res" class="card hide">
+    <h2>Análisis → hipótesis → contraste</h2>
+    <div id="resAlert"></div>
+    <div id="resBody"></div>
+  </div>
+
+  <div id="clas" class="card hide">
+    <h2>RF02 · Clasificación y RF04 · Justificación del estudiante</h2>
+    <div class="row">
+      <div><label>Categoría OWASP elegida (RF02)</label><select id="catSel"></select></div>
+      <div><label>Categoría próxima considerada</label><select id="catNear"></select></div>
+    </div>
+    <label>Justificación (mín. 40 caracteres): ¿por qué esta categoría y no la próxima?</label>
+    <textarea id="just"></textarea>
+    <div class="row">
+      <div><label>Impacto preliminar</label><textarea id="impacto" style="min-height:60px" placeholder="p. ej. exposición de dirección y teléfono de clientes"></textarea></div>
+      <div><label>Dato faltante / evidencia adicional a solicitar</label><textarea id="falta" style="min-height:60px" placeholder="p. ej. código del controlador de pedidos, logs de acceso"></textarea></div>
+    </div>
+    <label>Política institucional aplicable (criterio contextual)</label>
+    <input id="politica" placeholder="p. ej. Ley N.° 29733 de Protección de Datos Personales; política de pagos de Kimbos">
+    <div class="cand" style="border-left:4px solid var(--bad)">
+      <b>Paso 6 · Abogado del Diablo</b>
+      <p id="diablo" class="mut"></p>
+      <label>Réplica del estudiante (mín. 40 caracteres): sustente su clasificación frente a la objeción</label>
+      <textarea id="replica" style="min-height:60px"></textarea>
+    </div>
+    <div class="row">
+      <div><label>Severidad preliminar</label><select id="sev"><option>Alta</option><option>Media</option><option>Baja</option></select></div>
+      <div><label>Estudiante</label><input id="alumno" placeholder="Nombre"></div>
+    </div>
+    <button class="ok" onclick="guardar()">Guardar en la matriz</button>
+    <div id="msg" class="mut"></div>
+  </div>
+</section>
+
+<!-- PANEL 2 -->
+<section id="p2" class="hide">
+  <div class="card">
+    <h2>Matriz de clasificación — Kimbos Delivery</h2>
+    <button onclick="exportCSV()">RF06 · Exportar CSV (Excel)</button>
+    <button class="sec" onclick="exportJSON()">Exportar JSON</button>
+    <button class="sec" onclick="window.print()">Imprimir / PDF</button>
+    <button class="bad" onclick="borrarTodo()">Vaciar matriz</button>
+    <div class="wrap"><table id="tabla"></table></div>
+  </div>
+</section>
+
+<!-- PANEL 3 -->
+<section id="p3" class="hide">
+  <div class="card">
+    <h2>RF05 · Revisión humana (auditor/docente)</h2>
+    <div class="alert">La decisión final siempre es humana. Cada revisión queda registrada con revisor, fecha y comentario. La «referencia docente» es orientativa: se acepta una clasificación alternativa solo si está sólidamente justificada.</div>
+    <label>Nombre del revisor</label><input id="revisor" placeholder="Mg. Nombre Apellido">
+    <div id="revList"></div>
+  </div>
+</section>
+
+<!-- PANEL 4 -->
+<section id="p4" class="hide">
+  <div class="card">
+    <h2>Cómo funciona y cuáles son sus límites</h2>
+    <ul>
+      <li><b>Flujo:</b> entrada → análisis de evidencia → hipótesis → contraste → clasificación → justificación → revisión humana.</li>
+      <li><b>Motor:</b> reglas ponderadas por indicadores textuales (sin IA externa, sin enviar datos a terceros). Se muestran la categoría candidata y dos cercanas: las que tienen indicadores o, si no hay, las que se confunden habitualmente con la candidata.</li>
+      <li><b>Marco normativo:</b> OWASP Top 10:2025 (clasificación), ASVS (verificación complementaria), WSTG (pruebas), Ley N.° 29733 y políticas internas de Kimbos (contexto).</li>
+      <li><b>Riesgos conocidos:</b> falsos positivos/negativos, descripción insuficiente, clasificación fuera de contexto, exposición de datos sensibles de clientes, dependencia de la sugerencia automática.</li>
+      <li><b>Controles:</b> umbral mínimo de confianza, alerta de ambigüedad, enmascarado de datos sensibles, justificación, impacto y dato faltante obligatorios, revisión humana, registro de cambios.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h2>Orientación para las preguntas críticas</h2>
+    <ul>
+      <li><b>A01 vs A07 en Kimbos:</b> si el atacante logra entrar a la cuenta de otro cliente (contraseña adivinable, sin límite de intentos, sesión que no expira) es A07. Si entra con su propia cuenta y, cambiando el código del pedido, ve pedidos ajenos, es A01. Evidencia: con qué identidad estaba la sesión y si el servidor valida que el pedido pertenece a ese cliente.</li>
+      <li><b>Yape sin conciliar (A06 vs A08):</b> si el problema es que el proceso nunca exigió conciliar el pago antes de despachar, falta un control de diseño (A06). Sería A08 si el sistema aceptara datos o código manipulados por falta de una verificación de integridad (p. ej. un comprobante firmado que no se valida).</li>
+      <li><b>Escáner con «0 vulnerabilidades»:</b> igual se audita manualmente A01 (pedidos ajenos), A06 (pagos y reglas de negocio), A07 (flujo de login/sesión), A08 (despliegue automático), A09 (rastro de cambios de estado y pagos), A10 (qué pasa si falla el servicio de mapas) y A03 (inventario de librerías). Dependen de contexto y procesos que un escáner no ve. HTTPS de Render no resuelve ninguno de ellos.</li>
+      <li><b>¿Un hallazgo correcto puede estar mal clasificado?</b> Sí: clasificar E6 como A01 llevaría a revisar permisos, cuando lo que falta es una regla de conciliación del pago en el proceso.</li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<script>
+/* ---------- Datos normativos: OWASP Top 10:2025 ---------- */
+const CATS={
+A01:{n:"Broken Access Control (Pérdida de control de acceso)",crit:"El usuario ya está identificado, pero puede acceder a recursos o funciones que no le corresponden (horizontal o vertical).",hip:"El servidor no verifica la autorización sobre el objeto/función solicitado.",q:"¿El servidor valida en cada solicitud que el pedido/recurso pertenece al usuario o que su rol permite la acción?",ev:"Prueba con dos cuentas de cliente; matriz rol-recurso (cliente/personal/administrador); revisión de la lógica de autorización (WSTG-ATHZ, ASVS V8)."},
+A02:{n:"Security Misconfiguration (Configuración de seguridad incorrecta)",crit:"La causa raíz es una configuración por defecto, innecesaria o no endurecida del sistema, servidor o servicio.",hip:"Existen valores de fábrica, modos de depuración, CORS o cabeceras sin hardening.",q:"¿Existe línea base de endurecimiento? ¿Se desactivó el modo debug y se configuraron CORS y cabeceras de seguridad?",ev:"Revisión de variables de entorno y configuración del servicio, cabeceras HTTP, línea base CIS (WSTG-CONF, ASVS V13)."},
+A03:{n:"Software Supply Chain Failures (Fallas en la cadena de suministro de software)",crit:"Se usan componentes de terceros sin inventario, versión, procedencia o gestión de vulnerabilidades conocidas.",hip:"No hay trazabilidad (SBOM) ni control de la procedencia de dependencias y scripts externos.",q:"¿Existe inventario/SBOM con versión y origen? ¿Se monitorean vulnerabilidades de los componentes?",ev:"SBOM, package.json/lockfile, scripts cargados desde CDN, análisis de composición de software (ASVS V15)."},
+A04:{n:"Cryptographic Failures (Fallas criptográficas)",crit:"Datos sensibles sin cifrado adecuado, algoritmos débiles o mala gestión de claves.",hip:"Se protegen datos con cifrado/hash inexistente o débil.",q:"¿Qué algoritmo se usa para contraseñas (bcrypt/argon2 vs MD5)? ¿Cómo se protegen respaldos y claves?",ev:"Esquema de la tabla de usuarios, función de hash, configuración TLS, gestión de secretos (WSTG-CRYP, ASVS V11)."},
+A05:{n:"Injection (Inyección)",crit:"La entrada del usuario se interpreta como instrucción (SQL, comandos, HTML/JS) por falta de separación datos/código.",hip:"La entrada se concatena o se muestra sin parametrizar ni codificar.",q:"¿La entrada se parametriza al consultar y se codifica al mostrarse en el panel del personal?",ev:"Revisión del código que guarda y muestra el campo, pruebas controladas de inyección (WSTG-INPV, ASVS V1)."},
+A06:{n:"Insecure Design (Diseño inseguro)",crit:"Falta un control en el diseño o en la regla de negocio; el sistema hace exactamente lo que el diseño permite.",hip:"El proceso no incorpora un control (conciliación, doble validación, límites) por falta de modelado de amenazas.",q:"¿Existe requisito de negocio o modelo de amenazas que exija este control antes de preparar/despachar?",ev:"Reglas de negocio de pagos, flujo de estados del pedido, modelo de amenazas, pruebas de lógica de negocio (WSTG-BUSL, ASVS V2)."},
+A07:{n:"Authentication Failures (Fallas de autenticación)",crit:"El mecanismo para probar identidad (login, recuperación, sesión, MFA) es débil, predecible o eludible.",hip:"La verificación de identidad puede adivinarse, repetirse o eludirse.",q:"¿La falla ocurre al demostrar quién es el usuario (A07) o después de autenticado, al acceder a recursos (A01)?",ev:"Prueba del login, límite de intentos, mensajes de error, expiración de sesión (WSTG-ATHN/SESS, ASVS V6/V7)."},
+A08:{n:"Software or Data Integrity Failures (Fallas de integridad de software o datos)",crit:"Se acepta código o datos (actualizaciones, pipelines, serialización) sin verificar integridad ni procedencia.",hip:"No hay firma, revisión ni validación al desplegar o consumir código o datos.",q:"¿Se verifica firma/revisión y origen antes de que el código llegue a producción?",ev:"Configuración de despliegue (Render/GitHub), protección de rama, firma de commits, controles CI/CD (ASVS V15)."},
+A09:{n:"Security Logging & Alerting Failures (Fallas de registro y alertas)",crit:"No hay registro suficiente ni alertas para detectar y reconstruir quién, cuándo y qué ocurrió.",hip:"Las acciones sensibles no dejan rastro auditable ni disparan alertas.",q:"¿Los logs permiten reconstruir usuario, fecha/hora, acción y resultado? ¿Hay alertas y retención?",ev:"Muestras de logs, tabla de auditoría de pedidos/pagos, retención, pruebas de alertas (ASVS V16)."},
+A10:{n:"Mishandling of Exceptional Conditions (Manejo inadecuado de condiciones excepcionales)",crit:"Errores, fallos o condiciones inesperadas se manejan mal (fail-open, mensajes con detalle, estados inconsistentes).",hip:"Ante un error o caída de un servicio el sistema falla de forma insegura.",q:"¿Qué ocurre ante timeouts o fallos del servicio de mapas? ¿Falla abierto o cerrado?",ev:"Pruebas simulando caída/timeout de dependencias, revisión del manejo de excepciones (ASVS V16)."}
+};
+/* indicadores [texto normalizado, peso] */
+const KW={
+A01:[["cambiando el id",5],["cambia el codigo",5],["id de otro",4],["otro cliente",4],["otro usuario",3],["pedidos ajenos",4],["idor",5],["sin autorizacion",4],["control de acceso",4],["permisos",2],["privilegio",3],["no le corresponde",4],["/api/",1],["recurso ajeno",4],["escalar",3],["autorizacion",2]],
+A02:[["configuracion por defecto",5],["no endurecida",5],["por defecto",3],["credenciales por defecto",5],["modo debug",3],["cors",3],["cabeceras de seguridad",4],["hardening",4],["endurec",4],["puerto abierto",3],["listado de directorios",3],["servicio innecesario",3],["configuracion",1]],
+A03:[["libreria de terceros",5],["de terceros",3],["inventario de componentes",5],["vulnerabilidades conocidas",4],["sbom",5],["cdn",2],["dependencia",3],["componente desactualizado",4],["procedencia",1],["version",1],["cadena de suministro",5],["paquete",2],["npm",2],["componente vulnerable",4]],
+A04:[["cifrado",3],["sin cifrar",5],["texto plano",5],["md5",4],["sha1",4],["sin sal",4],["hash",2],["tls",3],["clave debil",3],["criptograf",4]],
+A05:[["inyeccion",5],["sql",4],["sin codificar",4],["un script",3],["se ejecuta",3],["entrada del usuario",3],["datos e instrucciones",4],["construye una consulta",4],["concatena",4],["sin sanitizar",3],["xss",4],["comando del sistema",3],["consulta",2]],
+A06:[["politica de negocio",5],["regla de negocio",5],["conciliar",5],["regla que",3],["antes de despachar",3],["doble validacion",5],["modelo de amenazas",4],["segregacion de funciones",4],["sin una regla",3],["flujo de negocio",3],["requisito de seguridad",3],["diseno",2]],
+A07:[["recuperacion de contrasena",5],["inicio de sesion",4],["intentos fallidos",4],["no expira",3],["verificacion debil",4],["predecible",3],["login",3],["contrasena",3],["mfa",3],["fuerza bruta",4],["credenciales",2],["autenticacion",4],["sesion",2],["identidad",2]],
+A08:[["se despliega automaticamente",5],["verificar la integridad",5],["verificar integridad",5],["integridad",3],["sin firma",4],["sin revision",3],["firma digital",4],["checksum",4],["pipeline",3],["ci/cd",3],["deserializacion",5],["actualizacion",3],["se instala sin",4]],
+A09:[["no queda registro",5],["registro y alerta",6],["quien lo hizo",4],["reconstruir",4],["bitacora",3],["logs",3],["alerta",3],["trazabilidad",4],["monitoreo",3],["sin registro",5],["registro",2]],
+A10:[["en lugar de detener",5],["no responde",3],["timeout",2],["servicio externo",2],["excepcion",4],["manejo de errores",5],["error no controlado",5],["fail-open",5],["falla abierta",5],["stack trace",4],["condicion excepcional",5]]
+};
+/* categorías que se confunden habitualmente con cada una (RF03) */
+const CERCA={A01:["A07","A06"],A02:["A01","A07"],A03:["A08","A02"],A04:["A07","A02"],A05:["A06","A10"],A06:["A01","A08"],A07:["A01","A04"],A08:["A03","A02"],A09:["A02","A10"],A10:["A02","A06"]};
+/* evidencias simuladas del caso Kimbos Delivery */
+const EJ={
+E1:{a:"API de pedidos («Mis pedidos»)",u:"Cliente",f:"Consultar el estado de un pedido",t:"Un cliente con sesión iniciada abre «Mis pedidos», cambia el código del pedido en /api/pedidos/1587 por otro número y visualiza nombre, teléfono, dirección y ubicación de otro cliente.",
+  c:"El servidor entrega el pedido pedido por su número sin comprobar que ese pedido pertenece al cliente que inició sesión.",
+  im:"Un cliente puede leer nombre, teléfono, dirección y ubicación de otros clientes; fuga masiva de datos personales.",
+  fa:"Código del controlador de /api/pedidos/:id y logs de acceso, para ver si valida al propietario del recurso.",
+  ju:"El usuario ya está autenticado; la falla es que el sistema no verifica la propiedad del recurso solicitado, no la forma de autenticarse."},
+E2:{a:"Servicio web y página /acceso del personal",u:"Personal / administrador",f:"Operación del servidor",t:"La página /acceso para personal está publicada con la configuración por defecto del framework: modo debug activo, CORS abierto a cualquier origen y sin cabeceras de seguridad.",
+  c:"El panel del personal está publicado con la configuración de fábrica: depuración activa, CORS abierto y sin cabeceras de seguridad.",
+  im:"Exposición de detalles internos y mayor superficie de ataque sobre el panel del personal.",
+  fa:"Captura de las cabeceras HTTP de respuesta y el archivo de configuración del servidor en producción.",
+  ju:"La causa raíz es una configuración por defecto no endurecida del servicio, no un fallo de código ni de permisos de usuario."},
+E3:{a:"Librería de mapas y cálculo de rutas",u:"Equipo de desarrollo",f:"Ubicación y costo de delivery",t:"El mapa y el cálculo de rutas usan una librería JavaScript de terceros cargada desde un CDN externo; su versión y procedencia no figuran en ningún inventario de componentes y no se revisan sus vulnerabilidades conocidas.",
+  c:"El mapa usa una librería externa traída de un CDN cuya versión y origen nadie tiene documentados ni vigila.",
+  im:"Una versión vulnerable o alterada del componente afectaría a todos los clientes que cargan la página.",
+  fa:"Inventario/SBOM con versión y origen y la política de actualización de dependencias.",
+  ju:"El problema es la falta de trazabilidad y gestión de un componente de terceros, no cómo se instala el código ni cómo se trata la entrada."},
+E4:{a:"Base de datos de clientes",u:"Cliente",f:"Almacenar credenciales",t:"Las contraseñas de los clientes se guardan con hash MD5 sin sal y los respaldos de la base de datos se copian en texto plano.",
+  c:"Las contraseñas se guardan con un resumen débil y sin sal, y los respaldos de la base se copian sin cifrar.",
+  im:"Si se filtra la base, las contraseñas se recuperan fácilmente y se comprometen las cuentas de los clientes.",
+  fa:"Esquema de la tabla de usuarios y el procedimiento de respaldo de la base de datos.",
+  ju:"El defecto está en la protección criptográfica de datos sensibles, no en el mecanismo de inicio de sesión en sí."},
+E5:{a:"Campo «Indicaciones de entrega» y panel del personal",u:"Cliente → personal",f:"Registrar y ver indicaciones del pedido",t:"El campo «Indicaciones de entrega» guarda el texto del cliente y el panel del personal lo muestra sin codificar; un script escrito por el cliente se ejecuta en el navegador del personal.",
+  c:"El texto que el cliente escribe en «Indicaciones» se muestra tal cual en el panel del personal y el navegador lo ejecuta.",
+  im:"Un cliente puede ejecutar código en el navegador del personal y robar su sesión o realizar acciones en su nombre.",
+  fa:"Código que guarda y que muestra el campo, para ver si se codifica la salida.",
+  ju:"La entrada del usuario se interpreta como instrucción por falta de separación entre datos y código, no es solo un control de diseño ausente."},
+E6:{a:"Flujo de pago Yape / Plin",u:"Cliente / personal de caja",f:"Confirmar pago y pasar a preparación",t:"Al pagar con Yape o Plin el cliente puede escribir cualquier número de operación y el pedido pasa a preparación; el proceso no define una regla que obligue a conciliar el pago con el estado de cuenta antes de despachar.",
+  c:"El pedido pasa a preparación con cualquier número de operación; ninguna regla obliga a conciliar el pago antes de despachar.",
+  im:"Pedidos despachados sin cobro real; pérdida económica directa para el negocio.",
+  fa:"Documento de reglas de negocio del flujo de pago y la máquina de estados del pedido.",
+  ju:"Falta un control en el diseño del proceso; el sistema hace exactamente lo permitido, no es un permiso mal asignado ni una verificación de integridad."},
+E7:{a:"Módulo de inicio de sesión de clientes",u:"Cliente",f:"Iniciar sesión",t:"El inicio de sesión de clientes no limita los intentos fallidos, indica si el correo está registrado y la sesión no expira aunque el usuario cierre el navegador.",
+  c:"El inicio de sesión no limita los intentos, revela si el correo existe y la sesión no caduca.",
+  im:"Permite adivinar cuentas por fuerza bruta y mantener sesiones robadas de forma indefinida.",
+  fa:"Política de bloqueo de intentos, los mensajes de error del login y la configuración de expiración de sesión.",
+  ju:"La falla está en el mecanismo que demuestra la identidad, antes de acceder a cualquier recurso."},
+E8:{a:"Despliegue en Render desde el repositorio",u:"Desarrollador / administrador",f:"Publicar nuevas versiones",t:"Cada cambio subido al repositorio se despliega automáticamente en producción, sin revisión, sin firma de commits y sin verificar la integridad de lo que se publica.",
+  c:"Cada cambio del repositorio se publica solo en producción, sin revisión ni verificación de integridad de lo que se despliega.",
+  im:"Un commit malicioso o erróneo llega directo a producción y afecta a todos los usuarios.",
+  fa:"Configuración del despliegue (Render/GitHub), protección de rama y firma de commits.",
+  ju:"Se acepta código en producción sin verificar su integridad ni su procedencia, más que un simple ajuste de configuración."},
+E9:{a:"Panel del personal: estados y pagos",u:"Personal de tienda",f:"Cambiar estado del pedido / confirmar pago",t:"Cuando el personal cambia el estado de un pedido o confirma un pago, no queda registro de quién lo hizo ni cuándo, y no se genera ninguna alerta ante cambios masivos.",
+  c:"Cuando el personal cambia estados o confirma pagos no queda registro de quién ni cuándo, ni se generan alertas.",
+  im:"Es imposible reconstruir o detectar a tiempo un fraude interno o un error operativo.",
+  fa:"Muestras de logs, la tabla de auditoría de pedidos/pagos y la política de retención.",
+  ju:"El defecto es la ausencia de registro y alertas de acciones sensibles, no la configuración de un servicio puntual."},
+E10:{a:"Integración con el servicio de mapas",u:"Cliente",f:"Calcular costo de delivery",t:"Si el servicio externo de mapas no responde (timeout), el sistema calcula el delivery en S/ 0.00 y permite confirmar el pedido en lugar de detener el proceso.",
+  c:"Si el servicio de mapas no responde, el sistema cobra S/ 0.00 de delivery y deja confirmar el pedido en vez de detenerse.",
+  im:"Pérdida de ingresos por envíos y comportamiento impredecible del sistema ante fallos de dependencias.",
+  fa:"Prueba simulando la caída/timeout del servicio de mapas y revisión del manejo de la excepción.",
+  ju:"Ante una condición excepcional el sistema falla de forma insegura (abierto), en lugar de detener la operación."}
+};
+/* objeciones del "Abogado del Diablo" para pares que se confunden con frecuencia [elegida|próxima] */
+const DIABLO={
+"A01|A07":"Si el cliente vio pedidos ajenos, ¿no será que la sesión o la identidad no se validó bien? Eso sería A07, no A01.",
+"A07|A01":"Si por el login débil el atacante entra a la cuenta de otro cliente, lo que obtiene es acceso a pedidos ajenos: ¿por qué no es A01?",
+"A07|A04":"Si las contraseñas se pueden adivinar, quizá el problema real es cómo se guardan: ¿no es una falla criptográfica (A04)?",
+"A04|A07":"Si el problema son las contraseñas, eso es autenticación: ¿por qué A04 y no A07?",
+"A06|A01":"Si la caja no debería confirmar un pago sin verificar, simplemente le falta un permiso: eso es control de acceso (A01), no diseño.",
+"A06|A08":"El sistema acepta un número de operación sin comprobar que es auténtico: ¿no es aceptar datos sin verificar su integridad (A08)?",
+"A01|A06":"Quizá el sistema hace exactamente lo que se diseñó y nunca se definió quién puede ver qué pedido: ¿no es diseño inseguro (A06)?",
+"A02|A01":"Si cualquiera puede abrir /acceso, el problema es de autorización (A01), no de configuración.",
+"A02|A07":"Si el panel del personal está expuesto, lo que falla es la autenticación del personal (A07), ¿no?",
+"A03|A08":"Una librería cargada de un CDN externo podría estar alterada: ¿no es eso una falla de integridad (A08) más que de cadena de suministro?",
+"A08|A03":"Si el código viene del repositorio y de dependencias externas, ¿no es un problema de cadena de suministro (A03)?",
+"A08|A02":"Activar el despliegue automático es solo un ajuste de Render: ¿no es configuración incorrecta (A02)?",
+"A05|A06":"Si nunca se definió un requisito para validar el texto del cliente, ¿no es un defecto de diseño (A06) en lugar de inyección?",
+"A05|A10":"Si el panel no maneja bien un texto inesperado, ¿no es manejo inadecuado de condiciones excepcionales (A10)?",
+"A09|A02":"Si Render ya guarda logs pero no se activaron los de la aplicación, ¿no es simple configuración incorrecta (A02)?",
+"A09|A10":"Si la operación falló y no quedó rastro, ¿no es un mal manejo de la condición excepcional (A10)?",
+"A10|A06":"Cobrar S/ 0.00 cuando falla el mapa es una regla de negocio mal pensada: ¿no es diseño inseguro (A06)?",
+"A10|A02":"Si el timeout del servicio de mapas está mal configurado, ¿no es configuración incorrecta (A02)?"
+};
+function objecion(el,pr){
+  return DIABLO[el+"|"+pr]||`Yo diría que esto es ${pr} · ${CATS[pr].n}: ${CATS[pr].crit} ¿Qué evidencia concreta descarta ${pr} y confirma ${el}?`;
+}
+function actualizarDiablo(){const el=$("catSel").value,pr=$("catNear").value;
+  $("diablo").textContent=el===pr?"Elija una categoría próxima distinta para recibir la objeción.":"«"+objecion(el,pr)+"»"}
+const REF={E1:"A01",E2:"A02",E3:"A03",E4:"A04",E5:"A05",E6:"A06",E7:"A07",E8:"A08",E9:"A09",E10:"A10"};
+
+/* ---------- Utilidades ---------- */
+const $=id=>document.getElementById(id);
+const norm=s=>s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function enmascarar(t){
+  let n=0;const r=t.replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,()=>{n++;return"[CORREO]"})
+   .replace(/(\+51\s?)?\b9\d{2}\s?\d{3}\s?\d{3}\b/g,()=>{n++;return"[TELEFONO]"})
+   .replace(/\b\d{8,9}\b/g,()=>{n++;return"[DOC]"})
+   .replace(/\b\d{1,3}(\.\d{1,3}){3}\b/g,()=>{n++;return"[IP]"})
+   .replace(/\b(eyJ[\w-]+\.[\w-]+\.[\w-]+|[A-Za-z0-9]{32,})\b/g,()=>{n++;return"[TOKEN]"});
+  return{texto:r,n};
+}
+const KEY="matriz_owasp_kimbos";
+let DB=[];let actual=null;
+try{DB=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){DB=[]}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+
+/* ---------- Motor de reglas ---------- */
+function puntuar(texto){
+  const t=norm(texto),sc={},hits={};
+  for(const c in KW){sc[c]=0;hits[c]=[];
+    for(const[k,w]of KW[c]){if(t.includes(k)){sc[c]+=w;hits[c].push(k)}}}
+  const tot=Object.values(sc).reduce((a,b)=>a+b,0);
+  const rank=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]);
+  /* cercanas: primero las que tienen indicadores relevantes, luego las que se confunden habitualmente */
+  const near=[...new Set([...rank.slice(1).filter(c=>sc[c]>=3),...CERCA[rank[0]],...rank.slice(1)])].filter(c=>c!==rank[0]).slice(0,2);
+  return{sc,hits,tot,rank,top:[rank[0],...near]};
+}
+function analizar(){
+  const raw=$("evid").value.trim();
+  if(raw.length<25){alert("Describa la evidencia con más detalle (mínimo 25 caracteres).");return}
+  const comp=$("comp").value.trim();
+  if(comp.length<20){alert("Paso 2: describa el comportamiento inseguro con sus palabras (mínimo 20 caracteres) antes de analizar.");return}
+  if(/\bA(0[1-9]|10)\b|owasp/i.test(comp)){alert("Paso 2: describa el comportamiento sin nombrar todavía una categoría OWASP.");return}
+  const m=enmascarar(raw);
+  const r=puntuar(m.texto);
+  const top=r.top;
+  const s1=r.sc[top[0]],s2=r.sc[r.rank[1]];
+  let alerta="";
+  if(r.tot===0||s1<4){
+    alerta='<div class="alert red"><b>Evidencia insuficiente.</b> No hay indicadores suficientes para sugerir una categoría. Solicite más información (¿qué falla exactamente, quién lo hace, qué control falta?).</div>';
+  }else if(s2>0&&(s1-s2)/s1<0.3){
+    alerta='<div class="alert"><b>Ambigüedad:</b> las dos primeras categorías tienen puntajes cercanos. Use las preguntas diferenciadoras antes de decidir; la clasificación alternativa es válida solo si está sólidamente justificada.</div>';
+  }else{
+    alerta='<div class="alert green"><b>Hipótesis con soporte razonable.</b> Aun así, contraste con evidencia y confirme con revisión humana.</div>';
+  }
+  if(m.n)alerta+=`<div class="alert red">Se enmascararon ${m.n} dato(s) sensible(s) antes del análisis.</div>`;
+  $("resAlert").innerHTML=alerta;
+  $("resBody").innerHTML=top.map((c,i)=>{
+    const pct=r.tot?Math.round(r.sc[c]/r.tot*100):0;
+    const motivo=r.hits[c].length?'indicadores: '+r.hits[c].map(h=>'<span class="tag">'+esc(h)+'</span>').join(' '):'sin indicadores en el texto · se muestra porque suele confundirse con '+top[0];
+    return `<div class="cand ${i==0?'top':''}">
+      <b>${i==0?'Categoría candidata':'Categoría cercana '+i}: ${c} · ${esc(CATS[c].n)}</b>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <span class="mut">Peso relativo de indicadores: ${pct}% · ${motivo}</span>
+      <ul>
+        <li><b>Criterio de decisión:</b> ${esc(CATS[c].crit)}</li>
+        <li><b>Hipótesis a contrastar:</b> ${esc(CATS[c].hip)}</li>
+        <li><b>Pregunta diferenciadora:</b> ${esc(CATS[c].q)}</li>
+        <li><b>Evidencia adicional / prueba sugerida:</b> ${esc(CATS[c].ev)}</li>
+      </ul></div>`}).join("");
+  actual={sug:top[0],near:top[1],texto:m.texto,comp:enmascarar(comp).texto,conf:r.tot?Math.round(r.sc[top[0]]/r.tot*100):0};
+  const opts=Object.keys(CATS).map(c=>`<option value="${c}">${c} · ${esc(CATS[c].n)}</option>`).join("");
+  $("catSel").innerHTML=opts;$("catNear").innerHTML=opts;
+  $("catSel").value=top[0];$("catNear").value=top[1];actualizarDiablo();
+  $("res").classList.remove("hide");$("clas").classList.remove("hide");
+  $("res").scrollIntoView({behavior:"smooth"});
+}
+function limpiar(){["eid","activo","usuario","funcion","evid","comp","just","impacto","falta","politica","replica"].forEach(i=>$(i).value="");
+  $("res").classList.add("hide");$("clas").classList.add("hide");$("msg").textContent="";actual=null}
+function guardar(){
+  if(!actual){return}
+  const j=$("just").value.trim();
+  if(j.length<40){$("msg").textContent="La justificación debe tener al menos 40 caracteres (RF04).";return}
+  if($("catSel").value===$("catNear").value){$("msg").textContent="La categoría próxima debe ser distinta de la elegida.";return}
+  if(!$("impacto").value.trim()||!$("falta").value.trim()){$("msg").textContent="Registre el impacto preliminar y el dato faltante (paso 5).";return}
+  const rep=$("replica").value.trim();
+  if(rep.length<40){$("msg").textContent="Responda al Abogado del Diablo con al menos 40 caracteres (paso 6).";return}
+  const reg={id:$("eid").value.trim()||("EV"+(DB.length+1)),activo:$("activo").value.trim(),usuario:$("usuario").value.trim(),
+    funcion:$("funcion").value.trim(),evidencia:actual.texto,comportamiento:actual.comp,politica:$("politica").value.trim(),
+    objecion:objecion($("catSel").value,$("catNear").value),replica:rep,sugerida:actual.sug,confianza:actual.conf,elegida:$("catSel").value,
+    proxima:$("catNear").value,justificacion:j,impacto:$("impacto").value.trim(),falta:$("falta").value.trim(),
+    severidad:$("sev").value,alumno:$("alumno").value.trim(),fecha:new Date().toLocaleString("es-PE"),
+    estado:"Pendiente de revisión",revisor:"",comentario:"",final:"",fechaRev:""};
+  const i=DB.findIndex(x=>x.id===reg.id);
+  if(i>=0)DB[i]=reg;else DB.push(reg);
+  persist();render();$("msg").textContent="Guardado en la matriz ("+reg.id+").";
+}
+
+/* ---------- Matriz y revisión ---------- */
+function render(){
+  const h="<tr><th>ID</th><th>Activo / usuario / función</th><th>Evidencia</th><th>Comportamiento inseguro</th><th>Sugerida</th><th>Elegida</th><th>Próxima</th><th>Justificación</th><th>Abogado del Diablo / réplica</th><th>Política institucional</th><th>Impacto</th><th>Dato faltante</th><th>Sev.</th><th>Estudiante</th><th>Estado</th><th>Decisión final</th></tr>";
+  $("tabla").innerHTML=h+(DB.length?DB.map(r=>`<tr><td>${esc(r.id)}</td><td>${esc(r.activo)}<br>${esc(r.usuario)}<br>${esc(r.funcion)}</td><td>${esc(r.evidencia)}</td><td>${esc(r.comportamiento)}</td><td>${r.sugerida} (${r.confianza}%)</td><td><b>${r.elegida}</b></td><td>${r.proxima}</td><td>${esc(r.justificacion)}</td><td><i>${esc(r.objecion)}</i><br>${esc(r.replica)}</td><td>${esc(r.politica)}</td><td>${esc(r.impacto)}</td><td>${esc(r.falta)}</td><td>${r.severidad}</td><td>${esc(r.alumno)}</td><td>${esc(r.estado)}${r.revisor?'<br><span class="mut">'+esc(r.revisor)+' · '+esc(r.fechaRev)+'</span>':''}</td><td>${esc(r.final)}${r.comentario?'<br><span class="mut">'+esc(r.comentario)+'</span>':''}</td></tr>`).join(""):'<tr><td colspan="16" class="mut">Aún no hay registros.</td></tr>');
+  $("revList").innerHTML=DB.length?DB.map((r,i)=>{
+    const sel=CATS[r.final]?r.final:r.elegida;
+    const ref=REF[r.id]?` · referencia docente <span class="tag">${REF[r.id]}</span>`:"";
+    return `<div class="cand"><b>${esc(r.id)}</b> · elegida <span class="tag">${r.elegida}</span> · sugerida <span class="tag">${r.sugerida}</span>${ref} · estado: <b>${esc(r.estado)}</b>
+    <p>${esc(r.evidencia)}</p><p class="mut"><b>Justificación del estudiante${r.alumno?' ('+esc(r.alumno)+')':''}:</b> ${esc(r.justificacion)}</p>
+    <p class="mut"><b>Comportamiento inseguro:</b> ${esc(r.comportamiento)}</p>
+    <p class="mut"><b>Impacto:</b> ${esc(r.impacto)} · <b>Dato faltante:</b> ${esc(r.falta)}</p>
+    <p class="mut"><b>Abogado del Diablo:</b> <i>${esc(r.objecion)}</i><br><b>Réplica:</b> ${esc(r.replica)}</p>
+    ${r.politica?`<p class="mut"><b>Política institucional:</b> ${esc(r.politica)}</p>`:""}
+    <div class="row"><div><label>Categoría final</label><select id="rf${i}">${Object.keys(CATS).map(c=>`<option ${c===sel?'selected':''}>${c}</option>`).join("")}</select></div>
+    <div><label>Comentario del revisor</label><textarea id="rc${i}" style="min-height:50px">${esc(r.comentario)}</textarea></div></div>
+    <button class="ok" onclick="revisar(${i},'Aprobada')">Aprobar</button>
+    <button class="warn" onclick="revisar(${i},'Reclasificada')">Reclasificar</button>
+    <button class="bad" onclick="revisar(${i},'Observada: requiere más evidencia')">Observar</button></div>`}).join(""):'<p class="mut">No hay registros para revisar.</p>';
+}
+function revisar(i,est){
+  const rv=$("revisor").value.trim();if(!rv){alert("Ingrese el nombre del revisor.");return}
+  const r=DB[i];r.estado=est;r.revisor=rv;r.comentario=$("rc"+i).value.trim();
+  r.final=est.startsWith("Observada")?"(pendiente)":$("rf"+i).value;r.fechaRev=new Date().toLocaleString("es-PE");
+  persist();render();
+}
+function descargar(nombre,tipo,contenido){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([contenido],{type:tipo}));a.download=nombre;a.click()}
+function exportCSV(){
+  if(!DB.length){alert("No hay registros.");return}
+  const cols=[["id","ID"],["activo","Activo"],["usuario","Usuario"],["funcion","Función"],["evidencia","Evidencia"],["comportamiento","Comportamiento inseguro"],["sugerida","Categoría sugerida"],["confianza","Peso relativo %"],["elegida","Categoría elegida"],["proxima","Categoría próxima"],["justificacion","Justificación"],["objecion","Objeción Abogado del Diablo"],["replica","Réplica del estudiante"],["politica","Política institucional"],["impacto","Impacto preliminar"],["falta","Dato faltante"],["severidad","Severidad"],["alumno","Estudiante"],["fecha","Fecha registro"],["estado","Estado revisión"],["revisor","Revisor"],["final","Categoría final"],["comentario","Comentario revisor"],["fechaRev","Fecha revisión"]];
+  const q=v=>'"'+String(v??"").replace(/"/g,'""')+'"';
+  const csv="﻿"+cols.map(c=>q(c[1])).join(";")+"\n"+DB.map(r=>cols.map(c=>q(r[c[0]])).join(";")).join("\n");
+  descargar("matriz_clasificacion_owasp_kimbos.csv","text/csv;charset=utf-8",csv);
+}
+function exportJSON(){if(!DB.length){alert("No hay registros.");return}descargar("matriz_clasificacion_owasp_kimbos.json","application/json",JSON.stringify(DB,null,2))}
+function borrarTodo(){if(confirm("¿Vaciar toda la matriz?")){DB=[];persist();render()}}
+function tab(n){for(let i=0;i<=4;i++){$("p"+i).classList.toggle("hide",i!==n);$("t"+i).classList.toggle("act",i===n)}render();window.scrollTo(0,0)}
+
+/* ---------- Inicio ---------- */
+$("tablaCaso").innerHTML="<tr><th>ID</th><th>Evidencia del caso</th></tr>"+Object.keys(EJ).map(k=>`<tr><td>${k}</td><td>${esc(EJ[k].t)}</td></tr>`).join("");
+$("chips").innerHTML=Object.keys(EJ).map(k=>`<button class="sec" onclick="cargar('${k}')">${k}</button>`).join("");
+function cargar(k){const e=EJ[k];$("eid").value=k;$("activo").value=e.a;$("usuario").value=e.u;$("funcion").value=e.f;$("evid").value=e.t;
+  $("comp").value=e.c||"";$("impacto").value=e.im||"";$("falta").value=e.fa||"";$("just").value=e.ju||"";}
+$("catSel").onchange=$("catNear").onchange=actualizarDiablo;
+render();
+</script>
+</body>
+</html>
